@@ -5,6 +5,7 @@ import uuid
 import threading
 import time
 import subprocess
+import traceback
 
 app = Flask(__name__)
 app.secret_key = "supersecret"
@@ -104,7 +105,8 @@ def start_download():
             return jsonify({"download_id": final_filename}), 200
 
     except Exception as e:
-        print(f"[ERROR] Download failed: {e}")
+        print("[ERROR] Download failed:", e)
+        traceback.print_exc()  # â Print full traceback
         return jsonify({"error": str(e)}), 500
 
 @app.route('/progress/<download_id>')
