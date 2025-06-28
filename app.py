@@ -35,8 +35,11 @@ def index():
 
 @app.route('/start-download', methods=['POST'])
 def start_download():
-    url = request.form['url']
-    format_type = request.form['format']
+    try:
+        url = request.form.get('url')
+        format_type = request.form.get('format')
+        if not url or not format_type:
+            return jsonify({"error": "Missing URL or format"}), 400
 
     try:
         yt = YouTube(url, on_progress_callback=on_progress)
