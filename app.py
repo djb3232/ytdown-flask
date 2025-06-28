@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, send_file, jsonify
-from pytube import YouTube
+from pytubefix import YouTube
 import os
 import uuid
 import threading
@@ -49,7 +49,6 @@ def start_download():
 
     print(f"[DEBUG] url={url}, format={fmt}, quality={quality}, audio_format={audio_fmt}")
 
-    # â Validate URL before proceeding
     if not url or ("youtube.com/watch?v=" not in url and "youtu.be/" not in url):
         return jsonify({"error": "Please enter a valid YouTube video URL."}), 400
 
