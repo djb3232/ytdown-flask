@@ -56,7 +56,7 @@ def start_download():
         return jsonify({"error": "Missing format type"}), 400
 
     try:
-        yt = YouTube(url, on_progress_callback=on_progress, use_po_token=True)
+        yt = YouTube(url, on_progress_callback=on_progress, client="WEB")
         file_id = str(uuid.uuid4())
         base_path = os.path.join(DOWNLOAD_DIR, file_id)
         progress_map[file_id] = 0
@@ -66,12 +66,17 @@ def start_download():
 
         if fmt == 'audio':
             audio_streams = yt.streams.filter(only_audio=True).order_by('abr').desc()
-            if quality == 'low':
-                stream = audio_streams.last()
-            elif quality == 'medium':
-                mid = len(audio_streams) // 2
-                stream = audio_streams[mid]
-            else:
+            if not audio_streams:
+                return jsonify({"error": "No audio streams available for this video."}), 500
+
+            try:
+                if quality == 'low':
+                    stream = audio_streams.last()
+                elif quality == 'medium':
+                    stream = audio_streams[len(audio_streams) // 2]
+                else:
+                    stream = audio_streams.first()
+            except:
                 stream = audio_streams.first()
 
             temp_path = f"{base_path}.mp4"
@@ -80,11 +85,17 @@ def start_download():
             final_filename = f"{file_id}_{safe_title}_{tag}.{audio_fmt}"
             final_path = os.path.join(DOWNLOAD_DIR, final_filename)
 
-            subprocess.run([
-                "ffmpeg", "-y", "-i", temp_path,
-                "-vn", "-ar", "44100",
-                final_path
-            ], check=True)
+            try:
+                result = subprocess.run([
+                    "ffmpeg", "-y", "-i", temp_path,
+                    "-vn", "-ar", "44100",
+                    final_path
+                ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                print("[FFMPEG OUTPUT]", result.stdout)
+                print("[FFMPEG ERROR]", result.stderr)
+            except subprocess.CalledProcessError as ff_err:
+                print("[FFMPEG FAILED]", ff_err.stderr)
+                raise
 
             os.remove(temp_path)
             schedule_file_delete(final_path)
@@ -92,12 +103,17 @@ def start_download():
 
         else:
             video_streams = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution')
-            if quality == 'low':
-                stream = video_streams.first()
-            elif quality == 'medium':
-                mid = len(video_streams) // 2
-                stream = video_streams[mid]
-            else:
+            if not video_streams:
+                return jsonify({"error": "No video streams available for this video."}), 500
+
+            try:
+                if quality == 'low':
+                    stream = video_streams.first()
+                elif quality == 'medium':
+                    stream = video_streams[len(video_streams) // 2]
+                else:
+                    stream = video_streams.last()
+            except:
                 stream = video_streams.last()
 
             final_filename = f"{file_id}_{safe_title}_{tag}.mp4"
