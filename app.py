@@ -56,7 +56,8 @@ def start_download():
         return jsonify({"error": "Missing format type"}), 400
 
     try:
-        yt = YouTube(url, on_progress_callback=on_progress)
+        yt = YouTube(url, on_progress_callback=on_progress, use_po_token=True)
+        print(f"[DEBUG] Client version: {yt._client}")
         file_id = str(uuid.uuid4())
         base_path = os.path.join(DOWNLOAD_DIR, file_id)
         progress_map[file_id] = 0
