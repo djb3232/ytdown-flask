@@ -49,8 +49,12 @@ def start_download():
 
     print(f"[DEBUG] url={url}, format={fmt}, quality={quality}, audio_format={audio_fmt}")
 
-    if not url or not fmt:
-        return jsonify({"error": "Missing URL or format"}), 400
+    # â Validate URL before proceeding
+    if not url or ("youtube.com/watch?v=" not in url and "youtu.be/" not in url):
+        return jsonify({"error": "Please enter a valid YouTube video URL."}), 400
+
+    if not fmt:
+        return jsonify({"error": "Missing format type"}), 400
 
     try:
         yt = YouTube(url, on_progress_callback=on_progress)
@@ -106,7 +110,7 @@ def start_download():
 
     except Exception as e:
         print("[ERROR] Download failed:", e)
-        traceback.print_exc()  # â Print full traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/progress/<download_id>')
