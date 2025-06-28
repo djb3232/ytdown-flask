@@ -1,4 +1,4 @@
 flask
 pytubefix
+yt-dlp
 ffmpeg-python
-pip install yt-dlp
