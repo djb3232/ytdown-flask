@@ -66,7 +66,8 @@ def start_download():
         return jsonify({"error": "Unsupported format"}), 400
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    print(f"Download failed: {e}")
+    return jsonify({"error": str(e)}), 500
 
 @app.route('/progress/<download_id>')
 def get_progress(download_id):
